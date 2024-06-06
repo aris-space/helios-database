@@ -1,0 +1,30 @@
+# This docker file is used for the initial database setup.
+# For subsequent runs, use docker-compose.yml
+version: '3.8'
+
+services:
+  database:
+    image: mysql:8.4
+    container_name: helios-database
+
+    environment:
+      MYSQL_DATABASE: aris
+      # [WARNING!]: Make sure to update the password below with the one from the wiki when deploying!
+      MYSQL_ROOT_PASSWORD: Replace_me_wh3n_deploying_on_public_server
+
+    volumes:
+      # Named volume that contains database content
+      - aris_db_data:/var/lib/mysql
+      # SQL scripts in `/docker-entrypoint-initdb.d/` are run in alphabetical order
+      # Create a new user with read-only permissions
+      # This is what gets used by everyone who doesn't need write permissions on the database
+      - ./database/1-create-readonly-user.sql:/docker-entrypoint-initdb.d/1-create-readonly-user.sql
+      # The database dump to import
+      - ./database/dacs.sql:/docker-entrypoint-initdb.d/dacs.sql # Replace with existing dump if exists
+
+    ports:
+      - "3306:3306"
+
+volumes:
+  # Named volume that contains database content
+  aris_db_data:
