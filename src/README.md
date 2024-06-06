@@ -10,6 +10,8 @@
 ⚠️ **Start out by replacing all the placeholder passwords** ⚠️
 In particular all cases of `CHANGE_ME` and `Replace_me_wh3n_deploying_on_public_server` should be updated with the values from the ARIS wiki.
 
+Make sure docker compose is installed. See https://docs.docker.com/engine/install/ubuntu/
+
 For initial setup first run the setup docker compose file first.
 
 ```sh
