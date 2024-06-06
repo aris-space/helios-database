@@ -14,6 +14,8 @@ Make sure docker compose is installed. See https://docs.docker.com/engine/instal
 
 For initial setup first run the setup docker compose file first.
 
+Optional: Update URL in `Caddyfile` in case the domain changed.
+
 ```sh
 docker compose -f docker-compose.setup.yml up
 ```
