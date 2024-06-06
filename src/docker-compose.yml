@@ -1,0 +1,54 @@
+# This docker file is used for running the database
+# For initial database setup, make sure to run `docker-compose.setup.yml` first.
+version: '3.8'
+
+services:
+  # The database containing firing data
+  database:
+    image: mysql:8.4
+    container_name: helios-database
+
+    environment:
+      MYSQL_DATABASE: aris
+      # [WARNING!]: Make sure to update the password below with the one from the wiki when deploying!
+      MYSQL_ROOT_PASSWORD: Replace_me_wh3n_deploying_on_public_server
+
+    volumes:
+      # Named volume that contains database content
+      - aris_db_data:/var/lib/mysql
+
+    ports:
+      - "3306:3306"
+
+  # Reverse proxy
+  caddy:
+    image: caddy:latest
+    ports:
+      - "80:80"
+      # - "8081:8081"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web_uploader
+
+  # Web app to upload rosbags
+  web_uploader: # <--- needs to match with Caddyfile
+    container_name: helios-rosbag-uploader
+    build:
+      # Build in the context of the subdirectory containing the Python code
+      context: rosbag-uploader/
+      dockerfile: Dockerfile
+    volumes:
+      - ./uploads:/src/uploads
+    expose:
+      - "8000"
+
+volumes:
+  # Named volume that contains database content
+  aris_db_data:
+  # Named volume for caddy data storage
+  caddy_data:
+  caddy_config:

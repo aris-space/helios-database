@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>File Upload</title>
+  <!-- TODO: Vendor instead of loading from cloudflare -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.2/dropzone.min.js"></script>
+  <!-- TODO: Vendor instead of loading from cloudflare -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.2/dropzone.min.css">
+  <style>
+    .dropzone {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>HELIOS ROSBAG UPLOADER</h1>
+  <br />
+  <form id="upload-form">
+    Drop all rosbags relevant to a firing here
+    <div class="dropzone" id="rosbag-dropzone"></div>
+    Drop the corresponding config file here
+    <div class="dropzone" id="excel-dropzone"></div>
+    <div>
+      <label for="comment">Comment:</label>
+      <textarea id="comment" name="comment" rows="4" cols="50"
+        placeholder="Describe the test here. This comment will later be used to identify the test again in the database"></textarea>
+    </div>
+    <br />
+    <button type="button" id="upload-button" style="padding: 20px;">Upload</button>
+  </form>
+
+  <script>
+    Dropzone.autoDiscover = false;
+
+    const rosbagDropzone = new Dropzone("#rosbag-dropzone", {
+      url: "/upload",
+      autoProcessQueue: false,
+      maxFilesize: 5 * 1024, // 5GiB
+      uploadMultiple: true,
+      parallelUploads: 100,
+      acceptedFiles: ".bag",
+      paramName: 'rosbags',
+      dictDefaultMessage: "Drop all rosbags here",
+      init: function () {
+        this.on("uploadprogress", function (file, progress) {
+          console.log("Rosbag file progress", progress);
+        });
+      }
+    });
+
+    const excelDropzone = new Dropzone("#excel-dropzone", {
+      url: "/upload",
+      autoProcessQueue: false,
+      maxFilesize: 1 * 1024, // 1 GiB
+      maxFiles: 1,
+      acceptedFiles: ".xlsx,.xls",
+      paramName: 'excel',
+      dictDefaultMessage: "Drop the config file here",
+      init: function () {
+        this.on("uploadprogress", function (file, progress) {
+          console.log("Excel file progress", progress);
+        });
+      }
+    });
+
+    document.getElementById('upload-button').addEventListener('click', function () {
+      const comment = document.getElementById('comment').value.trim();
+      if (rosbagDropzone.getAcceptedFiles().length === 0) {
+        alert("Please upload at least one rosbag file.");
+        return;
+      }
+      if (excelDropzone.getAcceptedFiles().length !== 1) {
+        alert("Please upload exactly one Excel file.");
+        return;
+      }
+      if (!comment) {
+        alert("Please enter a comment.");
+        return;
+      }
+
+      // Prepare FormData manually
+      let formData = new FormData();
+      rosbagDropzone.getAcceptedFiles().forEach(file => {
+        formData.append('rosbags', file, file.name);
+      });
+      formData.append('excel', excelDropzone.getAcceptedFiles()[0], excelDropzone.getAcceptedFiles()[0].name);
+      formData.append('comment', comment);
+
+      fetch('/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'  // Ensure credentials are included in the request
+      }).then(response => response.json()).then(data => {
+        console.log(data);
+        if (data.error) {
+          alert(data.error);
+        } else {
+          alert("Upload successful");
+        }
+      }).catch(error => {
+        console.error("Error:", error);
+        alert("Upload failed");
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,6 @@
+# This Caddyfile describes the reverse proxy setup to expose the uploader to the public web
+# Note that the name `web_uploader` below has to match the name of the docker container that hosts the webinterface
+
+temp.dev.georg-teufelberger.at {
+    reverse_proxy web_uploader:8000
+}
