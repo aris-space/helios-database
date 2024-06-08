@@ -10,10 +10,11 @@ from functools import wraps
 import os
 import datetime
 import logging
+import secrets
 
 app = Flask(__name__)
 
-app.secret_key = "CHANGE_ME"  # Change this to a secure secret key
+app.secret_key = secrets.token_hex(16)  # Generate a random 32-character hex string
 UPLOAD_FOLDER = "uploads"
 
 # Set the maximum file size to 50 GB
