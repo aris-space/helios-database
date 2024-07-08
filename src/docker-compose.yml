@@ -6,6 +6,7 @@ services:
   # The database containing firing data
   database:
     image: mysql:8.4
+    restart: always
     container_name: helios-database
 
     environment:
@@ -23,6 +24,7 @@ services:
   # Reverse proxy
   caddy:
     image: caddy:latest
+    restart: always
     ports:
       - "80:80"
       # - "8081:8081"
@@ -37,6 +39,7 @@ services:
   # Web app to upload rosbags
   web_uploader: # <--- needs to match with Caddyfile
     container_name: helios-rosbag-uploader
+    restart: always
     build:
       # Build in the context of the subdirectory containing the Python code
       context: rosbag-uploader/
