@@ -92,17 +92,27 @@
         method: 'POST',
         body: formData,
         credentials: 'include'  // Ensure credentials are included in the request
-      }).then(response => response.json()).then(data => {
-        console.log(data);
-        if (data.error) {
-          alert(data.error);
-        } else {
-          alert("Upload successful");
+      }).then(response => {
+        if (!response.ok) {
+          // If the response is not OK (status 400-599), throw an error
+          return response.json().then(errData => {
+            throw new Error(errData.message || "Upload failed");
+          });
         }
-      }).catch(error => {
-        console.error("Error:", error);
-        alert("Upload failed");
-      });
+        return response.json(); // Proceed to parse the response if status is OK (200-299)
+      })
+        .then(data => {
+          console.log(data);
+          if (data.error) {
+            alert(data.error);
+          } else {
+            alert("Upload successful");
+          }
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          alert(`Upload failed: ${error.message}`);
+        });
     });
   </script>
 </body>
