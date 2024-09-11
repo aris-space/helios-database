@@ -1,9 +1,11 @@
 # This Dockerfile builds the rosbag uploader
 
 FROM debian:12-slim AS builder
-# Install `pipx`
+# Install `pipx` and `python-is-python3`, the latter is needed due to `poetry bundle` failing later otherwise, see #4 on GitHub
 RUN apt-get update && \
-    apt-get install --no-install-suggests --no-install-recommends --yes pipx
+    apt-get install --no-install-suggests --no-install-recommends --yes \
+    pipx \
+    python-is-python3
 
 # Refresh path
 ENV PATH="/root/.local/bin:${PATH}"
