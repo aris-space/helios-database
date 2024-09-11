@@ -1,5 +1,5 @@
 """
-Run this on the mission control PC before the start of a test/firing.
+Configures database
 """
 
 from os.path import exists
@@ -28,8 +28,8 @@ class DatabaseInstance:
         dbConnection = con.connect(
             host=self.hostip,
             user="root",
-            password="aris",
-            database="dacs",
+            password="Replace_me_wh3n_deploying_on_public_server",
+            database="aris",
         )
         dbCursor = dbConnection.cursor(buffered=True)
         return dbConnection, dbCursor
@@ -223,7 +223,6 @@ class DatabaseInstance:
 
         # Check if configuration sheets exist
         excelFile = pd.ExcelFile(configFilePath)
-        excelSheetNames = excelFile.sheet_names
 
         # Updating the phases
         phases = pd.read_excel(excelFile, "Phases with descriptions")
@@ -244,41 +243,12 @@ class DatabaseInstance:
 
         self.writeNewActuators(configId, actuators)
 
-    # Fills in the look up table (if it does not exist already)
-    def refreshLookupTable(self):
 
-        # Create lookup table (if it doesn't exist yet)
-        self.cursor.execute(
-            "CREATE TABLE IF NOT EXISTS lookup (id int NOT NULL PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key', temperature float COMMENT 'in K', pressure float COMMENT 'in B', liquid_density float COMMENT 'in kg/m3', vapor_density float COMMENT 'in kg/m3', liquid_volume float COMMENT 'in m3/kg', vapor_volume float COMMENT 'in m3/kg', liquid_energy float COMMENT 'in kj/kg',vapor_energy float COMMENT 'in kg/kg', liquid_enthalpy float COMMENT 'in kj/kg', vapor_enthalpy float COMMENT 'in kj/kg', liquid_entropy float, vapor_entropy float, liquid_cv float, vapor_cv float, liquid_cp float, vapor_cp float, cp_zero float, liquid_cp_cv float, vapor_cp_cv float, liquid_csat float, vapor_csat float, liquid_comp float, vapor_comp float, liquid_joule_thom float, vapor_joule_thom float, heat_of_vapor float)"
-        )
-        self.connection.commit()
-
-        # Check if config file exists
-        # configFilePath = "/home/dacs/git/data-management/database_pro/LOX_properties.xlsx"
-        configFilePath = "/home/dacs/git/configuration_tests/LOX_properties.xlsx"
-        fileExists = exists(configFilePath)
-        if not fileExists:
-            return False
-
-        excelFile = pd.ExcelFile(configFilePath)
-        excelSheetName = excelFile.sheet_names[0]  # There should be only one sheet
-        properties = pd.read_excel(excelFile, excelSheetName)
-        for idx, row in properties.iloc[2:].iterrows():
-            query = "INSERT INTO lookup (temperature, pressure, liquid_density, vapor_density, liquid_volume, vapor_volume, liquid_energy, vapor_energy, liquid_enthalpy, vapor_enthalpy, liquid_entropy, vapor_entropy, liquid_cv, vapor_cv, liquid_cp, vapor_cp, cp_zero, liquid_cp_cv, vapor_cp_cv, liquid_csat, vapor_csat, liquid_comp, vapor_comp, liquid_joule_thom, vapor_joule_thom, heat_of_vapor) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-            itemList = []
-            values = ()
-            for idy, item in row.items():
-                itemList.append(item)
-                values += tuple(itemList)
-                itemList = []
-
-            self.cursor.execute(query, values)
-            self.connection.commit()
-            self.checkInsert("lookup table")
-        return True
-
-
-if __name__ == "__main__":
+def configure_db_main(
+    configFilePath,
+    description,
+    hostip,
+):
 
     print("This script prepares the dacs database for a new test.")
     print(
@@ -289,15 +259,12 @@ if __name__ == "__main__":
     )
     print()
 
-    hostip = "127.0.0.1"
-    # configFilePath = "/home/dacs/git/data-management/database_pro/PRO_DACS-Configuration.xlsx"
-    configFilePath = "/home/dacs/git/configuration_tests/PRO_DACS-Configuration.xlsx"  # look at this @georg
-    fileExists = exists(configFilePath)
     print(configFilePath)
     if not exists(configFilePath):
-        exit("The config file does not exist or is not in the correct location.")
+        print("The config file does not exist or is not in the correct location.")
+        return False
 
-    print("Reading the configuration name...")
+    print(f"Reading the configuration name from {configFilePath}")
     excelFile = pd.ExcelFile(configFilePath)
     specs = pd.read_excel(excelFile, "Firing Parameter Specification")
     for idx, row in specs.iterrows():
@@ -307,43 +274,17 @@ if __name__ == "__main__":
 
     configNameSplit = configName.split("_")
     if not len(configNameSplit) >= 3:
-        exit("The format of the configuration name is wrong.")
+        print("The format of the configuration name is wrong.")
+        return False
 
     testName = configNameSplit[1]
     testDate = configNameSplit[0]
     testTime = configNameSplit[2] + "00"
     testTime = ":".join(testTime[i : i + 2] for i in range(0, len(testTime), 2))
 
-    checkString = (
-        "Name of the test: "
-        + testName
-        + "\nDate of the test: "
-        + testDate
-        + "\nStart time of the test: "
-        + testTime
-        + "\nIs this correct? Y/N? "
-    )
-    okay = input(checkString)
-
-    if okay.upper() == "N":
-        exit("Start this script again to configure the test correctly.")
-    else:
-        print("Continuing configuration of the database...")
-
-    description = input("Describe the test (enter if no description): ")
-    print()
-
     with DatabaseInstance(hostip) as db:
 
         print("Configuring the database...")
-
-        """
-        if not db.refreshLookupTable():
-            exit("Something went wrong with refreshing the lookup table. This data is necessary for certain plots. Check if the file exists and has the correct name.")
-
-        print("Loaded/refreshed the LOX properties lookup table.")
-        print()
-        """
 
         print("Checking if config/test already exists...")
         # if db.checkConfig(configName):
@@ -354,10 +295,12 @@ if __name__ == "__main__":
         # configId = 1
         configId = db.writeNewConfig(configName)
         if configId == -1:
-            exit("Something went wrong. Check connection to the DB and start again.")
+            print("Something went wrong. Check connection to the DB and start again.")
+            return False
         testId = db.writeNewTest(testName, testDate, testTime, configId, description)
         if testId == -1:
-            exit("Something went wrong. Check connection to the DB and start again.")
+            print("Something went wrong. Check connection to the DB and start again.")
+            return False
         print()
 
         print("Configuring sensors and actuators...")
@@ -365,3 +308,5 @@ if __name__ == "__main__":
         print()
 
         print("Success! The database is now ready for the test.")
+
+    return True

@@ -8,6 +8,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 flask = "^3.0.3"
+pandas = "^2.2.2"
+mysql-connector-python = "^9.0.0"
+openpyxl = "^3.1.5"
 
 
 [tool.poetry.group.dev]
