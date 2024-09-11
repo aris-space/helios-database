@@ -93,12 +93,14 @@ def upload_file():
     # Create a unique folder name based on the current timestamp
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     upload_subfolder = os.path.join(app.config["UPLOAD_FOLDER"], timestamp)
+    upload_subfolder_rosbags = os.path.join(upload_subfolder, "rosbags")
     os.makedirs(upload_subfolder)
+    os.makedirs(upload_subfolder_rosbags)
 
     # Save rosbags
     for file in rosbags:
         filename = secure_filename(file.filename)
-        file_path = os.path.join(upload_subfolder, filename)
+        file_path = os.path.join(upload_subfolder_rosbags, filename)
         file.save(file_path)
 
     # Save excel file
