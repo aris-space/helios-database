@@ -10,6 +10,9 @@ RUN apt-get update && \
 # Refresh path
 ENV PATH="/root/.local/bin:${PATH}"
 
+# Install dependencies for reading rosbags
+RUN apt-get install --yes python3-rosbag python3-rospy
+
 # Install poetry and related things
 RUN pipx install poetry
 RUN pipx inject poetry poetry-plugin-bundle
@@ -17,6 +20,9 @@ RUN pipx inject poetry poetry-plugin-bundle
 WORKDIR /src
 COPY . .
 RUN poetry bundle venv --python=/usr/bin/python3 --only=main,production /venv
+
+# Make sure site packages are also read so that rosbag modules can be imported
+RUN echo "include-system-site-packages = true" >> /venv/pyvenv.cfg
 
 # FROM debian:12-slim
 # COPY --from=builder /venv /venv

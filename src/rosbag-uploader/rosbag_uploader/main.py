@@ -12,6 +12,9 @@ import datetime
 import logging
 import secrets
 
+from configure_db import configure_db_main
+from read_bag import read_bag_main
+
 app = Flask(__name__)
 
 app.secret_key = secrets.token_hex(16)  # Generate a random 32-character hex string
@@ -115,6 +118,33 @@ def upload_file():
         comment_file.write(comment_text)
 
     app.logger.info(f"Uploaded to {upload_subfolder}")
+
+    app.logger.info("Running configure_db")
+    configure_db_result = configure_db_main(
+        configFilePath=excel_file_path,
+        description=comment_text,
+        hostip="database",
+    )
+    if not configure_db_result:
+        # Something went wrong, send back an error
+        return (
+            jsonify({"message": "Failed configuring database, check logs on server."}),
+            500,
+        )
+
+    app.logger.info("Running read_bags")
+    read_bag_result = read_bag_main(
+        bagdirectory=upload_subfolder_rosbags,
+        database_hostname="database",
+    )
+    if not read_bag_result:
+        # Something went wrong, send back an error
+        return (
+            jsonify({"message": "Failed reading rosbags, check logs on server."}),
+            500,
+        )
+
+    app.logger.info("Everything seems to have worked! :D")
     return jsonify({"message": "Files and comment uploaded successfully."}), 200
 
 
