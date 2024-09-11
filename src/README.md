@@ -16,6 +16,8 @@ For initial setup first run the setup docker compose file first.
 
 Optional: Update URL in `Caddyfile` in case the domain changed.
 
+Optional: Update `docker-compose.setup.yml` to point to the SQL file containing an existing database dump.
+
 ```sh
 docker compose -f docker-compose.setup.yml up
 ```
