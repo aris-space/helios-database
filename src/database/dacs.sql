@@ -259,6 +259,8 @@ CREATE TABLE IF NOT EXISTS `sensors_meta` (
   `location` varchar(255) DEFAULT NULL COMMENT 'location',
   `ain` varchar(255) DEFAULT NULL COMMENT 'AIN channel',
   `unit` varchar(255) DEFAULT NULL COMMENT 'unit of measurement',
+  `unc` float DEFAULT NULL COMMENT '',
+  `unc_type` varchar(255) DEFAULT NULL COMMENT '',
   PRIMARY KEY (`id`),
   KEY `sensor_id` (`sensor_id`),
   CONSTRAINT `sensors_meta_ibfk_1` FOREIGN KEY (`sensor_id`) REFERENCES `sensors` (`id`)
