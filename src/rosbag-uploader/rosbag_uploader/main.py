@@ -21,7 +21,8 @@ app.secret_key = secrets.token_hex(16)  # Generate a random 32-character hex str
 UPLOAD_FOLDER = "uploads"
 
 # Set the maximum file size to 50 GB
-app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024 * 1024
+max_upload_size = 50 * 1024 * 1024 * 1024  # 50 GB
+app.config["MAX_CONTENT_LENGTH"] = max_upload_size
 
 # Set the username and password for HTTP Basic Authentication
 USERNAME = "CHANGE_ME"
