@@ -161,7 +161,11 @@ if __name__ == "__main__":
     # Use waitress if installed (i.e. in production)
     try:
         from waitress import serve
-        serve(app, host="0.0.0.0", port=8000)
+        serve(
+            app,
+            host="0.0.0.0",
+            port=8000,
+        )
 
     # Fall back to debug server in dev
     except ModuleNotFoundError:
