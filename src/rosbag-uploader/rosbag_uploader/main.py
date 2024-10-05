@@ -74,6 +74,8 @@ def upload_file():
     Checks for rosbags, config file, and comment. Returns an error if any are missing.
     Saves the uploaded data in a date annotated folder.
     """
+    app.logger.info("Received request")
+
     if "rosbags" not in request.files:
         return jsonify({"error": "Backend: No rosbags provided"}), 400
 
