@@ -166,6 +166,7 @@ if __name__ == "__main__":
             app,
             host="0.0.0.0",
             port=8000,
+            max_request_body_size=50 * 1024 * 1024 * 1024,
         )
 
     # Fall back to debug server in dev
